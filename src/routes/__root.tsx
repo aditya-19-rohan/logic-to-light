@@ -78,7 +78,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Vitals Ledger" },
+      { title: "Vitals Ledger — Clinical Records Workstation" },
       { name: "description", content: "Health information system for patient vitals" },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "Vitals Ledger" },
