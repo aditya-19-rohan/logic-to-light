@@ -61,7 +61,7 @@ function Index() {
   };
 
   const ids = Object.keys(patients).map(Number).sort((a, b) => a - b);
-  const totalVisits = ids.reduce((s, i) => s + patients[i].length, 0);
+  const totalVisits = ids.reduce((s, i) => s + (patients[i]?.length ?? 0), 0);
 
   return (
     <div className="min-h-screen">
@@ -157,7 +157,7 @@ function Records({ patients, ids, onDelete }: { patients: Patients; ids: number[
             <h2 className="font-display text-2xl">Patient #{id}</h2>
             <button className="text-sm text-destructive hover:underline" onClick={() => onDelete(id)}>Delete all visits</button>
           </div>
-          <VisitTable rows={patients[id].map((visit) => ({ id, visit }))} />
+          <VisitTable rows={(patients[id] ?? []).map((visit) => ({ id, visit }))} />
         </section>
       ))}
     </div>
@@ -253,7 +253,7 @@ function FollowUp({ patients }: { patients: Patients }) {
         Flagged when any visit shows temperature above 38 °C, heart rate above 100 bpm, respiratory rate above 20, systolic above 140 or diastolic above 90 mmHg.
       </p>
       {!ids.length ? <p>No patients currently need follow-up.</p> : (
-        <VisitTable rows={ids.flatMap((id) => patients[id].filter(needsFollowUp).map((visit) => ({ id, visit })))} />
+        <VisitTable rows={ids.flatMap((id) => (patients[id] ?? []).filter(needsFollowUp).map((visit) => ({ id, visit })))} />
       )}
     </div>
   );
