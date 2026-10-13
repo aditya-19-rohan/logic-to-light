@@ -31,7 +31,7 @@ export const LABELS: Record<keyof typeof RANGES, { name: string; unit: string }>
 export function isValidDate(date: string): boolean {
   const parts = date.split("-");
   if (parts.length !== 3 || parts.some((p) => !/^\d+$/.test(p))) return false;
-  const [, m, d] = parts.map(Number);
+  const [, m = 0, d = 0] = parts.map(Number);
   return m >= 1 && m <= 12 && d >= 1 && d <= 31;
 }
 
@@ -60,7 +60,7 @@ export function parsePatientsText(text: string): { patients: Patients; errors: s
     }
     const id = Number(f[0]);
     const v: Visit = {
-      date: f[1],
+      date: f[1] ?? "",
       temp: Number(f[2]),
       hr: Number(f[3]),
       rr: Number(f[4]),
@@ -96,7 +96,7 @@ export type Stats = Omit<Visit, "date"> & { visits: number };
 
 export function calculateAverageStats(patients: Patients, id?: number): Stats | null {
   const ids = id === undefined ? Object.keys(patients).map(Number) : patients[id] ? [id] : [];
-  const all = ids.flatMap((i) => patients[i]);
+  const all = ids.flatMap((i) => patients[i] ?? []);
   if (!all.length) return null;
   const avg = (k: keyof Omit<Visit, "date">) => all.reduce((s, v) => s + v[k], 0) / all.length;
   return {
