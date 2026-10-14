@@ -1,0 +1,21 @@
+{
+  "name": "vitals-ledger-api",
+  "version": "1.0.0",
+  "description": "Express + MongoDB REST API for the Vitals Ledger clinical records workstation",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js",
+    "seed": "node seed.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "mongoose": "^8.8.0"
+  }
+}
