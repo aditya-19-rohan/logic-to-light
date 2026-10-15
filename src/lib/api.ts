@@ -1,7 +1,7 @@
 // Client for the Express + MongoDB backend (backend/). Enabled when VITE_API_URL is set.
 import type { Clinic, ClinicVisit, Patient } from "./clinic";
 
-export const API_URL: string = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? "";
+export const API_URL: string = (import.meta.env["VITE_API_URL"] as string | undefined)?.replace(/\/$/, "") ?? "";
 export const apiEnabled = API_URL.length > 0;
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {

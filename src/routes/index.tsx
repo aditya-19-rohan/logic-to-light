@@ -11,6 +11,8 @@ import {
   SEED, visitsOf, type Clinic, type ClinicVisit, type Patient, type Sex,
 } from "@/lib/clinic";
 import { OverviewCharts, TrendChart } from "@/components/clinic/Charts";
+import { api, apiEnabled, diffClinic, runOps } from "@/lib/api";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -28,25 +30,47 @@ export const Route = createFileRoute("/")({
 
 const KEY = "vitals-ledger-clinic-v2";
 type View = "overview" | "patients" | "intake" | "triage" | "data";
+type SyncMode = "local" | "connecting" | "online" | "error";
 
+/** Local storage always; when VITE_API_URL is set, loads from and syncs every change to the Express/MongoDB API. */
 function useClinic() {
-  const [clinic, setClinic] = useState<Clinic>(SEED);
+  const [clinic, setState] = useState<Clinic>(SEED);
+  const [mode, setMode] = useState<SyncMode>(apiEnabled ? "connecting" : "local");
+  const [syncError, setSyncError] = useState<string | null>(null);
   const loaded = useRef(false);
+  const current = useRef(clinic);
+  current.current = clinic;
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) setClinic(JSON.parse(raw));
+      if (raw) setState(JSON.parse(raw));
     } catch { /* ignore */ }
     loaded.current = true;
+    if (apiEnabled) {
+      api.getClinic()
+        .then((c) => { setState(c); setMode("online"); })
+        .catch((e: Error) => { setMode("error"); setSyncError(e.message); });
+    }
   }, []);
   useEffect(() => {
     if (loaded.current) localStorage.setItem(KEY, JSON.stringify(clinic));
   }, [clinic]);
-  return [clinic, setClinic] as const;
+
+  const setClinic = (next: Clinic) => {
+    const prev = current.current;
+    setState(next);
+    if (apiEnabled && mode === "online") {
+      runOps(diffClinic(prev, next))
+        .then(() => setSyncError(null))
+        .catch((e: Error) => { setSyncError(e.message); toast.error(`Not saved to server: ${e.message}`); });
+    }
+  };
+  return { clinic, setClinic, mode, syncError };
 }
 
 function App() {
-  const [clinic, setClinic] = useClinic();
+  const { clinic, setClinic, mode, syncError } = useClinic();
   const [view, setView] = useState<View>("overview");
   const [selected, setSelected] = useState<number | null>(null);
 
@@ -83,8 +107,9 @@ function App() {
         </nav>
         <div className="hidden px-5 pt-6 lg:block">
           <p className="eyebrow">Storage</p>
-          <p className="mt-2 flex items-center gap-2 font-mono text-xs text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" /> Local · browser
+          <p className="mt-2 flex items-center gap-2 font-mono text-xs text-muted-foreground" title={syncError ?? undefined}>
+            <span className={`h-1.5 w-1.5 rounded-full ${mode === "error" ? "bg-destructive" : "bg-primary shadow-[0_0_8px_var(--primary)]"}`} />
+            {mode === "local" ? "Local · browser" : mode === "connecting" ? "Connecting to API…" : mode === "online" ? "MongoDB · live" : "API offline · local copy"}
           </p>
         </div>
       </aside>
