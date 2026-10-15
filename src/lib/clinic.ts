@@ -19,9 +19,9 @@ export type Patient = {
 };
 export type ClinicVisit = Visit & {
   patientId: number;
-  complaint?: string;
-  note?: string;
-  nextFollowUp?: string;
+  complaint?: string | undefined;
+  note?: string | undefined;
+  nextFollowUp?: string | undefined;
 };
 export type Clinic = { patients: Patient[]; visits: ClinicVisit[] };
 
