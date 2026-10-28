@@ -4,7 +4,7 @@ import {
   Activity, AlertTriangle, Database, Download, FileSpreadsheet, HeartPulse, LayoutDashboard,
   Phone, Printer, Search, Trash2, Upload, UserPlus, Users,
 } from "lucide-react";
-import hero from "@/assets/hero-pulse.jpg";
+import { LandingHero, LandingNav } from "@/components/clinic/Landing";
 import { LABELS, RANGES, needsFollowUp, validateVisit, calculateAverageStats } from "@/lib/patients";
 import {
   bmi, bmiClass, bpStage, downloadWorkbook, followUpReasons, fromWorkbook, latestVisit, news2,
@@ -86,17 +86,18 @@ function App() {
   ];
   const open = (id: number) => { setSelected(id); setView("patients"); };
 
+  const statusLabel = mode === "local" ? "Local · browser" : mode === "connecting" ? "Connecting…" : mode === "online" ? "MongoDB · live" : "API offline · local copy";
+
   return (
-    <div className="grain min-h-screen lg:grid lg:grid-cols-[232px_1fr]">
-      <aside className="no-print border-b border-sidebar-border bg-sidebar lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r">
-        <div className="flex items-center gap-2 px-5 py-5">
-          <HeartPulse className="h-5 w-5 text-primary" />
-          <div>
-            <p className="font-display text-xl leading-none">Vitals Ledger</p>
-            <p className="eyebrow mt-1">EHR · v2.0</p>
-          </div>
+    <div className="min-h-screen">
+      <LandingNav status={{ label: statusLabel, error: mode === "error" }} />
+      <LandingHero patients={clinic.patients.length} visits={clinic.visits.length} flagged={flagged.length} />
+    <div id="workstation" className="mx-auto max-w-[1400px] scroll-mt-20 px-4 py-12 md:px-6 lg:grid lg:grid-cols-[232px_1fr] lg:gap-6">
+      <aside className="no-print mb-6 rounded-2xl border border-sidebar-border bg-sidebar lg:sticky lg:top-24 lg:mb-0 lg:self-start">
+        <div className="px-5 pt-5">
+          <p className="eyebrow">Workstation</p>
         </div>
-        <nav className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col">
+        <nav className="flex gap-1 overflow-x-auto p-3 lg:flex-col">
           {nav.map((n) => (
             <button key={n.id} onClick={() => setView(n.id)} className={`nav-item ${view === n.id ? "nav-active" : ""}`}>
               <n.icon className="h-4 w-4 shrink-0" />
@@ -105,17 +106,17 @@ function App() {
             </button>
           ))}
         </nav>
-        <div className="hidden px-5 pt-6 lg:block">
+        <div className="hidden px-5 pb-5 lg:block">
           <p className="eyebrow">Storage</p>
           <p className="mt-2 flex items-center gap-2 font-mono text-xs text-muted-foreground" title={syncError ?? undefined}>
             <span className={`h-1.5 w-1.5 rounded-full ${mode === "error" ? "bg-destructive" : "bg-primary shadow-[0_0_8px_var(--primary)]"}`} />
-            {mode === "local" ? "Local · browser" : mode === "connecting" ? "Connecting to API…" : mode === "online" ? "MongoDB · live" : "API offline · local copy"}
+            {statusLabel}
           </p>
         </div>
       </aside>
 
-      <main className="min-w-0 px-4 py-6 md:px-8">
-        <div className="no-print mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-4">
+      <main className="min-w-0">
+        <div className="no-print mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-4">
           <Ticker label="Patients" value={clinic.patients.length} />
           <Ticker label="Visits logged" value={clinic.visits.length} />
           <Ticker label="Need follow-up" value={flagged.length} tone="alert" />
@@ -128,6 +129,7 @@ function App() {
         {view === "triage" && <Triage clinic={clinic} onOpen={open} />}
         {view === "data" && <DataHub clinic={clinic} setClinic={setClinic} />}
       </main>
+    </div>
     </div>
   );
 }
@@ -169,18 +171,7 @@ function Overview({ clinic, onOpen }: { clinic: Clinic; onOpen: (id: number) => 
   const name = (id: number) => clinic.patients.find((p) => p.id === id)?.name ?? `#${id}`;
   return (
     <>
-      <section className="relative mb-6 overflow-hidden rounded-lg border border-border">
-        <img src={hero} alt="Engraved heart with ECG trace" width={1600} height={640} className="absolute inset-0 h-full w-full object-cover object-right opacity-80" />
-        <div className="relative bg-gradient-to-r from-background via-background/85 to-transparent px-6 py-10 md:px-10 md:py-14">
-          <p className="eyebrow text-primary">Clinical overview</p>
-          <h1 className="mt-2 max-w-xl font-display text-5xl leading-[1.05] md:text-6xl">
-            Every heartbeat, <em className="text-copper">on the record.</em>
-          </h1>
-          <p className="mt-4 max-w-md text-sm text-muted-foreground">
-            Track patient vitals, spot deterioration early with NEWS2 scoring, and keep the whole ledger in a spreadsheet you own.
-          </p>
-        </div>
-      </section>
+      <SectionTitle kicker="Clinical overview" title="Today at a glance" />
 
       {avg && (
         <div className="mb-6 grid grid-cols-3 gap-3 md:grid-cols-6">
