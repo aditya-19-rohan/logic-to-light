@@ -1,0 +1,65 @@
+/* Plain CSS for the landing hero (adapted from the ResolveHQ Atlas template). */
+.vl-nav{height:76px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:30;padding:0 max(24px,calc((100vw - 1160px)/2));border-bottom:1px solid transparent;transition:background .25s,border-color .25s}
+.vl-nav.scrolled{background:color-mix(in oklch,var(--background) 88%,transparent);backdrop-filter:blur(18px);border-color:var(--border)}
+.vl-brand{display:inline-flex;align-items:center;gap:10px;font:800 20px Manrope,sans-serif;letter-spacing:-.8px}
+.vl-brand-mark{width:32px;height:32px;display:grid;place-items:center;border-radius:10px;color:var(--primary-foreground);background:linear-gradient(140deg,oklch(.95 .07 120),var(--primary));box-shadow:0 5px 24px color-mix(in oklch,var(--primary) 25%,transparent)}
+.vl-brand em{font-style:normal;color:var(--primary)}
+.vl-links{display:flex;align-items:center;gap:26px;font-size:13px;color:var(--muted-foreground)}
+.vl-links a:hover{color:var(--foreground)}
+.vl-status{display:inline-flex;align-items:center;gap:8px;font:500 11px "IBM Plex Mono",monospace;padding:7px 11px;border:1px solid var(--border);border-radius:999px}
+.vl-dot{width:7px;height:7px;border-radius:50%;background:var(--primary);box-shadow:0 0 10px var(--primary)}
+.vl-dot.err{background:var(--destructive);box-shadow:0 0 10px var(--destructive)}
+.vl-btn{display:inline-flex;align-items:center;gap:10px;padding:14px 18px;border-radius:12px;background:var(--primary);color:var(--primary-foreground);font-weight:700;font-size:13px;transition:transform .2s,filter .2s}
+.vl-btn:hover{transform:translateY(-2px);filter:brightness(1.06)}
+.vl-text-link{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600}
+.vl-text-link:hover{color:var(--primary)}
+
+.vl-hero{width:min(1160px,calc(100% - 48px));margin:0 auto;min-height:640px;display:grid;grid-template-columns:.95fr 1.05fr;align-items:center;padding:30px 0 70px}
+.vl-eyebrow{font-size:11px;letter-spacing:2.1px;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:10px;text-transform:uppercase}
+.vl-eyebrow i{width:6px;height:6px;border-radius:50%;background:var(--primary);box-shadow:0 0 15px var(--primary)}
+.vl-hero h1{font-family:Manrope,sans-serif;font-weight:800;letter-spacing:-3px;font-size:clamp(46px,6vw,74px);line-height:1.05;margin:22px 0 18px}
+.vl-hero h1 span{color:var(--primary)}
+.vl-hero p.lead{max-width:450px;font-size:15px;line-height:1.85;color:var(--muted-foreground)}
+.vl-actions{display:flex;align-items:center;gap:22px;margin-top:28px;flex-wrap:wrap}
+.vl-proof{display:flex;gap:28px;margin-top:40px}
+.vl-proof b{display:block;font:800 26px Manrope,sans-serif}
+.vl-proof small{font-size:11px;color:var(--muted-foreground)}
+
+.vl-art{height:500px;position:relative;perspective:1000px;isolation:isolate}
+.vl-glow{position:absolute;width:390px;height:390px;left:50%;top:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,color-mix(in oklch,var(--primary) 20%,transparent),transparent 70%);filter:blur(12px);z-index:-2}
+.vl-orbit{position:absolute;left:50%;top:50%;border:1px solid color-mix(in oklch,var(--primary) 30%,transparent);border-radius:50%;translate:-50% -50%;z-index:-1}
+.vl-orbit.one{width:430px;height:290px;animation:vl-spin 24s linear infinite}
+.vl-orbit.two{width:355px;height:420px;border-style:dashed;animation:vl-spin 31s linear infinite reverse}
+.vl-card{position:absolute;left:50%;top:50%;width:min(370px,86%);padding:22px;border-radius:19px;border:1px solid var(--border);background:linear-gradient(145deg,var(--card),var(--sidebar));box-shadow:0 45px 100px oklch(.15 .03 160 / 55%);transform:translate(-50%,-50%) rotateY(-17deg) rotateX(8deg);animation:vl-float 8s ease-in-out infinite}
+.vl-card-top{display:flex;justify-content:space-between;align-items:center;font:700 9px "IBM Plex Mono",monospace;letter-spacing:1.2px;color:var(--muted-foreground)}
+.vl-card h3{font:700 21px Manrope,sans-serif;margin:14px 0 3px}
+.vl-card .sub{font-size:11px;color:var(--muted-foreground)}
+.vl-vitals{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+.vl-vitals div{padding:10px;border-radius:10px;background:color-mix(in oklch,var(--background) 70%,transparent);border:1px solid var(--border)}
+.vl-vitals small{display:block;font-size:9px;color:var(--muted-foreground)}
+.vl-vitals b{font:600 16px "IBM Plex Mono",monospace}
+.vl-bar{height:5px;border-radius:20px;background:var(--border);margin-top:16px;overflow:hidden}
+.vl-bar span{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,var(--chart-5),var(--primary))}
+.vl-tag{padding:4px 8px;border-radius:6px;font-size:9px;font-weight:700;background:color-mix(in oklch,var(--primary) 18%,transparent);color:var(--primary)}
+.vl-tag.warn{background:color-mix(in oklch,var(--alert) 20%,transparent);color:var(--alert)}
+.vl-chip{position:absolute;z-index:4;display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--border);background:linear-gradient(135deg,var(--accent),var(--card));border-radius:13px;box-shadow:0 22px 45px oklch(.15 .03 160 / 45%);animation:vl-bob 6s ease-in-out infinite}
+.vl-chip b{display:block;font-size:11px}
+.vl-chip small{display:block;font-size:9px;color:var(--muted-foreground);margin-top:3px}
+.vl-chip .ic{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:var(--primary);color:var(--primary-foreground)}
+.vl-chip.c1{top:40px;left:0}.vl-chip.c2{right:-6px;top:225px;animation-delay:-2s}.vl-chip.c3{bottom:36px;left:20px;animation-delay:-4s}
+
+.vl-strip{border-block:1px solid var(--border);padding:22px 24px;display:flex;justify-content:center;gap:34px;flex-wrap:wrap;font-size:12px;color:var(--muted-foreground);background:var(--sidebar)}
+.vl-strip span{display:flex;align-items:center;gap:7px}
+.vl-strip svg{color:var(--primary)}
+
+.vl-reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+.vl-reveal.visible{opacity:1;transform:none}
+
+@keyframes vl-float{0%,100%{transform:translate(-50%,-50%) rotateY(-17deg) rotateX(8deg)}50%{transform:translate(-50%,-53%) rotateY(-11deg) rotateX(4deg)}}
+@keyframes vl-bob{0%,100%{translate:0 0}50%{translate:0 -8px}}
+@keyframes vl-spin{from{rotate:0deg}to{rotate:360deg}}
+
+@media(max-width:900px){.vl-hero{grid-template-columns:1fr;text-align:center}.vl-eyebrow,.vl-actions,.vl-proof{justify-content:center}.vl-hero p.lead{margin-inline:auto}.vl-art{width:min(540px,100%);margin:0 auto;height:460px}}
+@media(max-width:650px){.vl-links a{display:none}.vl-nav{height:64px;padding-inline:16px}.vl-art{height:420px}.vl-orbit.one{width:320px;height:220px}.vl-orbit.two{width:270px;height:320px}.vl-chip{padding:9px}}
+@media(prefers-reduced-motion:reduce){.vl-card,.vl-chip,.vl-orbit{animation:none}.vl-reveal{opacity:1;transform:none}}
+@media print{.vl-nav,.vl-hero,.vl-strip{display:none}}
