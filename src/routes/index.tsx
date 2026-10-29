@@ -221,7 +221,7 @@ function Directory({ clinic, setClinic, selected, setSelected }: {
       <div className="grid gap-4 xl:grid-cols-[300px_1fr]">
         <div className="panel no-print p-3">
           <label className="relative block">
-            <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input className="field pl-9" placeholder="Name, phone or ID" value={q} onChange={(e) => setQ(e.target.value)} />
           </label>
           <ul className="mt-3 max-h-72 space-y-1 overflow-y-auto xl:max-h-[70vh]">
@@ -278,7 +278,7 @@ function Dossier({ clinic, setClinic, p }: { clinic: Clinic; setClinic: (c: Clin
   };
 
   return (
-    <div className="space-y-4">
+    <div id="dossier" className="min-w-0 scroll-mt-24 space-y-4">
       <div className="panel p-5">
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4 lg:flex">
           <Avatar name={p.name} big />
@@ -379,6 +379,15 @@ function Dossier({ clinic, setClinic, p }: { clinic: Clinic; setClinic: (c: Clin
         </div>
         {!visits.length && <p className="p-5 text-sm text-muted-foreground">No visits recorded.</p>}
       </div>
+    </div>
+  );
+}
+
+function Vital({ k, v, warn }: { k: string; v: React.ReactNode; warn?: boolean }) {
+  return (
+    <div className="rounded-lg border border-border px-2 py-1.5">
+      <span className="eyebrow block">{k}</span>
+      <span className={warn ? "text-alert" : ""}>{v}</span>
     </div>
   );
 }
