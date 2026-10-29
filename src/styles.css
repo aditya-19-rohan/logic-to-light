@@ -153,12 +153,12 @@
 }
 
 @layer components {
-  .nav-item { @apply flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground; }
+  .nav-item { @apply flex min-h-11 w-full shrink-0 items-center gap-3 rounded-md px-3 py-2 lg:min-h-0 text-left text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground; }
   .nav-active { @apply bg-sidebar-accent text-foreground shadow-[inset_2px_0_0_var(--primary)]; }
-  .field { @apply w-full rounded-md border border-input bg-background/60 px-3 py-2 text-sm outline-none transition focus:border-primary focus:ring-1 focus:ring-ring; }
+  .field { @apply min-h-11 w-full rounded-md border border-input bg-background/60 px-3 py-2 text-base sm:min-h-0 sm:text-sm outline-none transition focus:border-primary focus:ring-1 focus:ring-ring; }
   .label { @apply mb-1.5 block font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground; }
-  .btn-primary { @apply inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:brightness-110 disabled:opacity-50; }
-  .btn-outline { @apply inline-flex items-center justify-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium transition hover:border-primary/60 hover:text-primary; }
+  .btn-primary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 sm:min-h-0 text-sm font-medium text-primary-foreground transition hover:brightness-110 disabled:opacity-50; }
+  .btn-outline { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-border bg-card px-3 py-2 sm:min-h-0 text-sm font-medium transition hover:border-primary/60 hover:text-primary; }
   .panel { @apply rounded-2xl border border-border bg-card; }
   .eyebrow { @apply font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground; }
   .chip { @apply inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider; }
