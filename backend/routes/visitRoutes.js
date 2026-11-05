@@ -1,7 +1,7 @@
 import { Router } from "express";
 import Patient from "../models/Patient.js";
 import Visit from "../models/Visit.js";
-import { followUpReasons, news2 } from "../lib/clinical.js";
+import { allergyConflicts, followUpReasons, news2 } from "../lib/clinical.js";
 
 const router = Router();
 const wrap = (fn) => (req, res, next) => fn(req, res, next).catch(next);
@@ -29,8 +29,12 @@ router.get("/follow-up", wrap(async (_req, res) => {
 
 // POST /api/visits → record a visit (Mongoose enforces vital ranges)
 router.post("/", wrap(async (req, res) => {
-  const exists = await Patient.exists({ id: Number(req.body.patientId) });
-  if (!exists) return res.status(404).json({ error: `Patient ${req.body.patientId} not found` });
+  const patient = await Patient.findOne({ id: Number(req.body.patientId) });
+  if (!patient) return res.status(404).json({ error: `Patient ${req.body.patientId} not found` });
+  // Block prescriptions that clash with recorded allergies unless the doctor explicitly overrides.
+  const clashes = allergyConflicts(patient.allergies, req.body.meds || []);
+  if (clashes.length && !req.body.allergyOverride) return res.status(422).json({ error: `Allergy conflict: ${clashes.join("; ")}` });
+  delete req.body.allergyOverride;
   const visit = await Visit.create(req.body);
   res.status(201).json({ ...visit.toJSON(), reasons: followUpReasons(visit), news2: news2(visit) });
 }));

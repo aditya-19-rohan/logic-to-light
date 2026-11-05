@@ -13,6 +13,7 @@ const patientSchema = new mongoose.Schema(
     allergies: { type: String, trim: true, maxlength: 300, default: "" },
     conditions: { type: String, trim: true, maxlength: 300, default: "" },
     emergencyContact: { type: String, trim: true, maxlength: 120, default: "" },
+    abha: { type: String, trim: true, match: [/^\d{2}-\d{4}-\d{4}-\d{4}$/, "ABHA ID must be XX-XXXX-XXXX-XXXX"] },
     registeredAt: { type: String, default: () => new Date().toISOString().slice(0, 10) },
   },
   { timestamps: true, versionKey: false },

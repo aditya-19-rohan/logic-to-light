@@ -22,6 +22,20 @@ const visitSchema = new mongoose.Schema(
     complaint: { type: String, trim: true, maxlength: 300 },
     note: { type: String, trim: true, maxlength: 1000 },
     nextFollowUp: { type: String },
+    soap: {
+      s: { type: String, trim: true, maxlength: 2000 },
+      o: { type: String, trim: true, maxlength: 2000 },
+      a: { type: String, trim: true, maxlength: 2000 },
+      p: { type: String, trim: true, maxlength: 2000 },
+    },
+    meds: [{
+      _id: false,
+      drug: { type: String, required: true, trim: true, maxlength: 80 },
+      dose: { type: String, trim: true, maxlength: 40 },
+      frequency: { type: String, trim: true, maxlength: 40 },
+      days: { type: Number, min: 0, max: 365 },
+      instructions: { type: String, trim: true, maxlength: 200 },
+    }],
   },
   { timestamps: true, versionKey: false },
 );

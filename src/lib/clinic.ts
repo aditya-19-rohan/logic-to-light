@@ -1,6 +1,7 @@
 // Clinical extensions on top of the original Python-port rules in ./patients.
 import * as XLSX from "xlsx";
 import { validateVisit, needsFollowUp, type Visit } from "./patients";
+import { formatAbha, medsFromText, medsToText, type Medication, type Soap } from "./ehr";
 
 export type Sex = "Male" | "Female" | "Other";
 export type Patient = {
@@ -16,12 +17,15 @@ export type Patient = {
   conditions: string;
   emergencyContact: string;
   registeredAt: string;
+  abha?: string | undefined;
 };
 export type ClinicVisit = Visit & {
   patientId: number;
   complaint?: string | undefined;
   note?: string | undefined;
   nextFollowUp?: string | undefined;
+  soap?: Soap | undefined;
+  meds?: Medication[] | undefined;
 };
 export type Clinic = { patients: Patient[]; visits: ClinicVisit[] };
 
@@ -91,13 +95,13 @@ export function needsFollowUpPatient(c: Clinic, id: number): boolean {
 }
 
 // ---------- Excel ----------
-const P_HEAD = ["Patient ID", "Full Name", "Age", "Sex", "Height (cm)", "Weight (kg)", "Contact Number", "Blood Group", "Allergies", "Chronic Conditions", "Emergency Contact", "Registered On"] as const;
-const V_HEAD = ["Patient ID", "Visit Date", "Temperature", "Heart Rate", "Respiratory Rate", "Systolic BP", "Diastolic BP", "SpO2", "Chief Complaint", "Doctor Note", "Next Follow-up"] as const;
+const P_HEAD = ["Patient ID", "Full Name", "Age", "Sex", "Height (cm)", "Weight (kg)", "Contact Number", "Blood Group", "Allergies", "Chronic Conditions", "Emergency Contact", "Registered On", "ABHA ID"] as const;
+const V_HEAD = ["Patient ID", "Visit Date", "Temperature", "Heart Rate", "Respiratory Rate", "Systolic BP", "Diastolic BP", "SpO2", "Chief Complaint", "Doctor Note", "Next Follow-up", "Subjective", "Objective", "Assessment", "Plan", "Medications"] as const;
 
 export function toWorkbook(c: Clinic): XLSX.WorkBook {
   const wb = XLSX.utils.book_new();
-  const p = c.patients.map((x) => [x.id, x.name, x.age, x.sex, x.heightCm, x.weightKg, x.contact, x.bloodGroup, x.allergies, x.conditions, x.emergencyContact, x.registeredAt]);
-  const v = c.visits.map((x) => [x.patientId, x.date, x.temp, x.hr, x.rr, x.sbp, x.dbp, x.spo2, x.complaint ?? "", x.note ?? "", x.nextFollowUp ?? ""]);
+  const p = c.patients.map((x) => [x.id, x.name, x.age, x.sex, x.heightCm, x.weightKg, x.contact, x.bloodGroup, x.allergies, x.conditions, x.emergencyContact, x.registeredAt, x.abha ?? ""]);
+  const v = c.visits.map((x) => [x.patientId, x.date, x.temp, x.hr, x.rr, x.sbp, x.dbp, x.spo2, x.complaint ?? "", x.note ?? "", x.nextFollowUp ?? "", x.soap?.s ?? "", x.soap?.o ?? "", x.soap?.a ?? "", x.soap?.p ?? "", medsToText(x.meds)]);
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([[...P_HEAD], ...p]), "Patients");
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([[...V_HEAD], ...v]), "Visits");
   return wb;
@@ -134,6 +138,7 @@ export function fromWorkbook(data: ArrayBuffer): { clinic: Clinic; errors: strin
       conditions: s(r, "Chronic Conditions"),
       emergencyContact: s(r, "Emergency Contact"),
       registeredAt: s(r, "Registered On"),
+      abha: s(r, "ABHA ID") ? formatAbha(s(r, "ABHA ID")) : undefined,
     });
   });
   const ids = new Set(patients.map((p) => p.id));
@@ -152,6 +157,10 @@ export function fromWorkbook(data: ArrayBuffer): { clinic: Clinic; errors: strin
       note: s(r, "Doctor Note") || undefined,
       nextFollowUp: s(r, "Next Follow-up") || undefined,
     };
+    const soap = { s: s(r, "Subjective"), o: s(r, "Objective"), a: s(r, "Assessment"), p: s(r, "Plan") };
+    if (soap.s || soap.o || soap.a || soap.p) v.soap = soap;
+    const meds = medsFromText(s(r, "Medications"));
+    if (meds.length) v.meds = meds;
     if (!ids.has(v.patientId)) { errors.push(`Visits row ${i + 2}: unknown patient ${v.patientId}`); return; }
     const err = validateVisit(v);
     if (err) { errors.push(`Visits row ${i + 2}: ${err}`); return; }
@@ -161,15 +170,15 @@ export function fromWorkbook(data: ArrayBuffer): { clinic: Clinic; errors: strin
 }
 
 // ---------- Seed ----------
-const P = (id: number, name: string, age: number, sex: Sex, h: number, w: number, contact: string, bg: string, allergies: string, conditions: string, ec: string, reg: string): Patient =>
-  ({ id, name, age, sex, heightCm: h, weightKg: w, contact, bloodGroup: bg, allergies, conditions, emergencyContact: ec, registeredAt: reg });
+const P = (id: number, name: string, age: number, sex: Sex, h: number, w: number, contact: string, bg: string, allergies: string, conditions: string, ec: string, reg: string, abha?: string): Patient =>
+  ({ id, name, age, sex, heightCm: h, weightKg: w, contact, bloodGroup: bg, allergies, conditions, emergencyContact: ec, registeredAt: reg, abha });
 const V = (patientId: number, date: string, temp: number, hr: number, rr: number, sbp: number, dbp: number, spo2: number, complaint?: string, note?: string, nextFollowUp?: string): ClinicVisit =>
   ({ patientId, date, temp, hr, rr, sbp, dbp, spo2, complaint, note, nextFollowUp });
 
 export const SEED: Clinic = {
   patients: [
-    P(1, "Ananya Sharma", 34, "Female", 162, 58, "+91 98201 44721", "B+", "Penicillin", "Asthma", "Rohit Sharma · +91 98201 11002", "2025-11-04"),
-    P(2, "Rahul Mehta", 58, "Male", 175, 91, "+91 99300 18265", "O+", "None", "Type 2 Diabetes, Hypertension", "Kavita Mehta · +91 99300 18200", "2025-10-12"),
+    P(1, "Ananya Sharma", 34, "Female", 162, 58, "+91 98201 44721", "B+", "Penicillin", "Asthma", "Rohit Sharma · +91 98201 11002", "2025-11-04", "91-4821-7730-1956"),
+    P(2, "Rahul Mehta", 58, "Male", 175, 91, "+91 99300 18265", "O+", "None", "Type 2 Diabetes, Hypertension", "Kavita Mehta · +91 99300 18200", "2025-10-12", "91-2207-6634-8810"),
     P(3, "Fatima Khan", 27, "Female", 158, 49, "+91 90040 66310", "A-", "Peanuts", "None", "Imran Khan · +91 90040 66000", "2026-01-18"),
     P(4, "Vikram Iyer", 71, "Male", 168, 77, "+91 98450 22931", "AB+", "Sulfa drugs", "COPD", "Lakshmi Iyer · +91 98450 22000", "2025-09-02"),
     P(5, "Meera Nair", 45, "Female", 165, 82, "+91 97450 55120", "O-", "None", "Hypothyroidism", "Arjun Nair · +91 97450 55100", "2026-02-21"),
@@ -179,7 +188,9 @@ export const SEED: Clinic = {
   ],
   visits: [
     V(1, "2026-03-02", 36.8, 78, 16, 118, 76, 98, "Wheezing at night", "Inhaler technique reviewed."),
-    V(1, "2026-05-14", 38.4, 104, 22, 124, 80, 95, "Fever, cough", "Likely viral bronchitis. Review in 1 week.", "2026-10-20"),
+    { ...V(1, "2026-05-14", 38.4, 104, 22, 124, 80, 95, "Fever, cough", "Likely viral bronchitis. Review in 1 week.", "2026-10-20"),
+      soap: { s: "Fever and dry cough for 3 days, worse at night.", o: "Scattered wheeze, no crepitations.", a: "Acute viral bronchitis on background asthma.", p: "Antipyretic, antihistamine, inhaler as needed. Review in 1 week." },
+      meds: [{ drug: "Paracetamol", dose: "500 mg", frequency: "1-1-1", days: 3, instructions: "After food" }, { drug: "Cetirizine", dose: "10 mg", frequency: "0-0-1", days: 5 }] },
     V(1, "2026-08-30", 37.0, 82, 17, 120, 78, 97, "Routine check"),
     V(2, "2026-01-10", 36.7, 84, 16, 148, 94, 97, "BP review", "Started amlodipine 5mg."),
     V(2, "2026-04-22", 36.9, 80, 16, 142, 90, 97, "BP review", "Partial response, increase dose."),
