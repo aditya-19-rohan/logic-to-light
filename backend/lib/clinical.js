@@ -40,3 +40,23 @@ export function news2(v) {
   const risk = score >= 7 ? "High" : score >= 5 || anyThree ? "Medium" : "Low";
   return { score, risk };
 }
+
+// Drug-allergy cross-check (same table as src/lib/ehr.ts).
+const ALLERGY_CLASSES = [
+  { allergy: /penicillin|beta.?lactam|amoxi/i, label: "Penicillin / beta-lactam", drugs: /penicillin|amoxicillin|ampicillin|cloxacillin|augmentin|cef/i },
+  { allergy: /sulfa|sulpha|sulfonamide/i, label: "Sulfonamide", drugs: /sulfa|sulpha|co-?trimoxazole|bactrim|septran/i },
+  { allergy: /nsaid|aspirin|ibuprofen/i, label: "NSAID", drugs: /ibuprofen|aspirin|diclofenac|naproxen|ketorolac/i },
+];
+
+export function allergyConflicts(allergies, meds) {
+  if (!allergies || /^none$/i.test(allergies.trim())) return [];
+  const out = [];
+  for (const m of meds) {
+    for (const c of ALLERGY_CLASSES) {
+      if (c.allergy.test(allergies) && c.drugs.test(m.drug)) out.push(`${m.drug} — patient is allergic to ${c.label}`);
+    }
+    if (m.drug && allergies.toLowerCase().includes(m.drug.toLowerCase()) && !out.some((o) => o.startsWith(m.drug)))
+      out.push(`${m.drug} — listed in patient allergies`);
+  }
+  return out;
+}
