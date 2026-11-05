@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity, AlertTriangle, Database, Download, FileSpreadsheet, HeartPulse, LayoutDashboard,
-  Phone, Printer, Search, Trash2, Upload, UserPlus, Users,
+  ClipboardList, Phone, Pill, Printer, Search, Trash2, Upload, UserPlus, Users,
 } from "lucide-react";
 import { LandingHero, LandingNav } from "@/components/clinic/Landing";
 import { LABELS, RANGES, needsFollowUp, validateVisit, calculateAverageStats } from "@/lib/patients";
@@ -11,6 +11,8 @@ import {
   SEED, visitsOf, type Clinic, type ClinicVisit, type Patient, type Sex,
 } from "@/lib/clinic";
 import { OverviewCharts, TrendChart } from "@/components/clinic/Charts";
+import { LiveQueue, PrescriptionBuilder, printRx, SoapFields, WhatsAppButton } from "@/components/clinic/Consult";
+import { allergyConflicts, type Medication, type Soap } from "@/lib/ehr";
 import { api, apiEnabled, diffClinic, runOps } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -29,7 +31,7 @@ export const Route = createFileRoute("/")({
 });
 
 const KEY = "vitals-ledger-clinic-v2";
-type View = "overview" | "patients" | "intake" | "triage" | "data";
+type View = "overview" | "queue" | "patients" | "intake" | "triage" | "data";
 type SyncMode = "local" | "connecting" | "online" | "error";
 
 /** Local storage always; when VITE_API_URL is set, loads from and syncs every change to the Express/MongoDB API. */
@@ -79,6 +81,7 @@ function App() {
 
   const nav: { id: View; label: string; icon: typeof Users; badge?: number }[] = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "queue", label: "Live queue", icon: ClipboardList },
     { id: "patients", label: "Patient directory", icon: Users },
     { id: "intake", label: "New intake", icon: UserPlus },
     { id: "triage", label: "Follow-up triage", icon: AlertTriangle, badge: flagged.length },
@@ -124,6 +127,7 @@ function App() {
         </div>
 
         {view === "overview" && <Overview clinic={clinic} onOpen={open} />}
+        {view === "queue" && <LiveQueue clinic={clinic} onOpen={open} />}
         {view === "patients" && <Directory clinic={clinic} setClinic={setClinic} selected={selected} setSelected={setSelected} />}
         {view === "intake" && <Intake clinic={clinic} setClinic={setClinic} onDone={open} />}
         {view === "triage" && <Triage clinic={clinic} onOpen={open} />}
@@ -294,12 +298,15 @@ function Dossier({ clinic, setClinic, p }: { clinic: Clinic; setClinic: (c: Clin
           <div className="no-print col-span-2 grid grid-cols-2 gap-2 lg:flex">
             <button className="btn-primary" onClick={() => setAdding((a) => !a)}><Activity className="h-4 w-4" /> Record visit</button>
             <button className="btn-outline" onClick={() => window.print()}><Printer className="h-4 w-4" /> Print</button>
+            {last && <button className="btn-outline" onClick={() => printRx(p, last)}><Pill className="h-4 w-4" /> Rx slip</button>}
+            <WhatsAppButton p={p} v={last} />
           </div>
         </div>
         <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-border pt-4 text-sm md:grid-cols-4">
           <Info k="Age / Sex" v={`${p.age} · ${p.sex}`} />
           <Info k="Height / Weight" v={`${p.heightCm} cm · ${p.weightKg} kg`} />
           <Info k="Blood group" v={p.bloodGroup || "—"} />
+          <Info k="ABHA ID" v={<span className="font-mono">{p.abha || "—"}</span>} />
           <Info k="Contact" v={<a className="text-primary hover:underline" href={`tel:${p.contact}`}>{p.contact}</a>} />
           <Info k="Allergies" v={p.allergies || "—"} warn={!!p.allergies && p.allergies !== "None"} />
           <Info k="Chronic conditions" v={p.conditions || "—"} />
@@ -307,7 +314,7 @@ function Dossier({ clinic, setClinic, p }: { clinic: Clinic; setClinic: (c: Clin
         </dl>
       </div>
 
-      {adding && <VisitForm patientId={p.id} onSave={(v) => { setClinic({ ...clinic, visits: [...clinic.visits, v] }); setAdding(false); }} />}
+      {adding && <VisitForm patientId={p.id} allergies={p.allergies} onSave={(v) => { setClinic({ ...clinic, visits: [...clinic.visits, v] }); setAdding(false); }} />}
 
       <div className="panel p-5">
         <p className="eyebrow">Trajectory</p>
@@ -338,10 +345,12 @@ function Dossier({ clinic, setClinic, p }: { clinic: Clinic; setClinic: (c: Clin
                 <Vital k="BP" v={`${v.sbp}/${v.dbp}`} warn={v.sbp > 140 || v.dbp > 90} />
                 <Vital k="SpO₂" v={v.spo2} />
               </div>
-              {(v.complaint || v.note || v.nextFollowUp) && (
+              {(v.complaint || v.note || v.nextFollowUp || v.soap || v.meds?.length) && (
                 <p className="text-xs text-muted-foreground">
                   {v.complaint && <span className="block text-foreground">{v.complaint}</span>}
                   {v.note}
+                  {v.soap?.a && <span className="mt-1 block"><b className="font-mono text-primary">A</b> {v.soap.a}</span>}
+                  {!!v.meds?.length && <span className="mt-1 block">℞ {v.meds.map((m) => m.drug).join(", ")}</span>}
                   {v.nextFollowUp && <span className="mt-1 block font-mono text-copper">↻ {v.nextFollowUp}</span>}
                 </p>
               )}
@@ -370,6 +379,8 @@ function Dossier({ clinic, setClinic, p }: { clinic: Clinic; setClinic: (c: Clin
                 <td className="max-w-xs py-3 pr-5 font-sans text-xs text-muted-foreground">
                   {v.complaint && <span className="block text-foreground">{v.complaint}</span>}
                   {v.note}
+                  {v.soap?.a && <span className="mt-1 block"><b className="font-mono text-primary">A</b> {v.soap.a}</span>}
+                  {!!v.meds?.length && <span className="mt-1 block">℞ {v.meds.map((m) => m.drug).join(", ")}</span>}
                   {v.nextFollowUp && <span className="mt-1 block font-mono text-copper">↻ {v.nextFollowUp}</span>}
                 </td>
               </tr>
@@ -404,19 +415,24 @@ function Info({ k, v, warn, wide }: { k: string; v: React.ReactNode; warn?: bool
 /* ---------------- Visit form ---------------- */
 const today = () => new Date().toISOString().slice(0, 10);
 
-function VisitForm({ patientId, onSave }: { patientId: number; onSave: (v: ClinicVisit) => void }) {
+function VisitForm({ patientId, allergies, onSave }: { patientId: number; allergies: string; onSave: (v: ClinicVisit) => void }) {
+  const [soap, setSoap] = useState<Soap>({ s: "", o: "", a: "", p: "" });
+  const [meds, setMeds] = useState<Medication[]>([]);
   const [f, setF] = useState({ date: today(), temp: "37", hr: "72", rr: "16", sbp: "120", dbp: "80", spo2: "98", complaint: "", note: "", nextFollowUp: "" });
   const [err, setErr] = useState<string | null>(null);
   const v: ClinicVisit = {
     patientId, date: f.date, temp: Number(f.temp), hr: Number(f.hr), rr: Number(f.rr),
     sbp: Number(f.sbp), dbp: Number(f.dbp), spo2: Number(f.spo2),
     complaint: f.complaint || undefined, note: f.note || undefined, nextFollowUp: f.nextFollowUp || undefined,
+    soap: soap.s || soap.o || soap.a || soap.p ? soap : undefined, meds: meds.length ? meds : undefined,
   };
   const live = validateVisit(v) ? null : news2(v);
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const e2 = validateVisit(v);
     if (e2) return setErr(e2);
+    const clash = allergyConflicts(allergies, meds);
+    if (clash.length && !confirm(`Allergy conflict:\n${clash.join("\n")}\n\nSave anyway?`)) return;
     onSave(v);
   };
   return (
@@ -439,6 +455,8 @@ function VisitForm({ patientId, onSave }: { patientId: number; onSave: (v: Clini
         <div><label className="label">Chief complaint</label><input className="field" value={f.complaint} onChange={(e) => setF({ ...f, complaint: e.target.value })} /></div>
         <div><label className="label">Doctor note</label><input className="field" value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} /></div>
       </div>
+      <div className="border-t border-border pt-4"><p className="eyebrow mb-2">Consultation · SOAP</p><SoapFields value={soap} onChange={setSoap} /></div>
+      <div className="border-t border-border pt-4"><p className="eyebrow mb-2">e-Prescription</p><PrescriptionBuilder meds={meds} onChange={setMeds} allergies={allergies} /></div>
       {err && <p className="text-sm text-destructive">{err}</p>}
       <button className="btn-primary w-full sm:w-auto">Save visit</button>
     </form>
