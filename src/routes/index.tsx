@@ -284,7 +284,7 @@ function Dossier({ clinic, setClinic, p }: { clinic: Clinic; setClinic: (c: Clin
   return (
     <div id="dossier" className="min-w-0 scroll-mt-24 space-y-4">
       <div className="panel p-5">
-        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4 lg:flex">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4 2xl:flex">
           <Avatar name={p.name} big />
           <div className="min-w-0 flex-1">
             <p className="eyebrow truncate">Patient #{String(p.id).padStart(4, "0")} · since {p.registeredAt || "—"}</p>
@@ -295,7 +295,7 @@ function Dossier({ clinic, setClinic, p }: { clinic: Clinic; setClinic: (c: Clin
               {b > 0 && <span className="chip border-border text-muted-foreground">BMI {b.toFixed(1)} · {bmiClass(b)}</span>}
             </div>
           </div>
-          <div className="no-print col-span-2 grid grid-cols-2 gap-2 lg:flex">
+          <div className="no-print col-span-2 grid grid-cols-2 gap-2 sm:grid-cols-4 2xl:flex">
             <button className="btn-primary" onClick={() => setAdding((a) => !a)}><Activity className="h-4 w-4" /> Record visit</button>
             <button className="btn-outline" onClick={() => window.print()}><Printer className="h-4 w-4" /> Print</button>
             {last && <button className="btn-outline" onClick={() => printRx(p, last)}><Pill className="h-4 w-4" /> Rx slip</button>}
