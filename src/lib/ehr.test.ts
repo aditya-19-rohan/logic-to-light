@@ -5,7 +5,9 @@ import { allergyConflicts as serverConflicts } from "../../backend/lib/clinical.
 
 describe("ABHA", () => {
   it("formats 14 digits as XX-XXXX-XXXX-XXXX", () => expect(formatAbha("91482177301956")).toBe("91-4821-7730-1956"));
+  it("accepts a complete formatted ABHA ID", () => expect(isValidAbha("91-4821-7730-1956")).toBe(true));
   it("rejects 13 digits", () => expect(isValidAbha(formatAbha("9148217730195"))).toBe(false));
+  it("rejects an ABHA ID with letters", () => expect(isValidAbha("91-AB21-7730-1956")).toBe(false));
 });
 
 describe("drug-allergy check", () => {

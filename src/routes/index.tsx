@@ -12,7 +12,7 @@ import {
 } from "@/lib/clinic";
 import { OverviewCharts, TrendChart } from "@/components/clinic/Charts";
 import { LiveQueue, PrescriptionBuilder, printRx, SoapFields, WhatsAppButton } from "@/components/clinic/Consult";
-import { allergyConflicts, type Medication, type Soap } from "@/lib/ehr";
+import { allergyConflicts, formatAbha, isValidAbha, type Medication, type Soap } from "@/lib/ehr";
 import { api, apiEnabled, diffClinic, runOps } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -466,7 +466,7 @@ function VisitForm({ patientId, allergies, onSave }: { patientId: number; allerg
 /* ---------------- Intake ---------------- */
 function Intake({ clinic, setClinic, onDone }: { clinic: Clinic; setClinic: (c: Clinic) => void; onDone: (id: number) => void }) {
   const nextId = useMemo(() => Math.max(0, ...clinic.patients.map((p) => p.id)) + 1, [clinic.patients]);
-  const [f, setF] = useState({ name: "", age: "", sex: "Female" as Sex, heightCm: "", weightKg: "", contact: "", bloodGroup: "", allergies: "", conditions: "", emergencyContact: "" });
+  const [f, setF] = useState({ name: "", age: "", sex: "Female" as Sex, heightCm: "", weightKg: "", contact: "", bloodGroup: "", allergies: "", conditions: "", emergencyContact: "", abha: "" });
   const [err, setErr] = useState<string | null>(null);
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF({ ...f, [k]: e.target.value });
   const submit = (e: React.FormEvent) => {
@@ -477,7 +477,8 @@ function Intake({ clinic, setClinic, onDone }: { clinic: Clinic; setClinic: (c: 
     if (!(h >= 40 && h <= 250)) return setErr("Height must be between 40 and 250 cm.");
     if (!(w >= 2 && w <= 350)) return setErr("Weight must be between 2 and 350 kg.");
     if (!/^[+\d][\d\s-]{6,}$/.test(f.contact.trim())) return setErr("Enter a valid contact number.");
-    const p: Patient = { id: nextId, name: f.name.trim(), age, sex: f.sex, heightCm: h, weightKg: w, contact: f.contact.trim(), bloodGroup: f.bloodGroup, allergies: f.allergies, conditions: f.conditions, emergencyContact: f.emergencyContact, registeredAt: today() };
+    if (f.abha && !isValidAbha(f.abha)) return setErr("ABHA ID must contain 14 digits in the format XX-XXXX-XXXX-XXXX.");
+    const p: Patient = { id: nextId, name: f.name.trim(), age, sex: f.sex, heightCm: h, weightKg: w, contact: f.contact.trim(), bloodGroup: f.bloodGroup, allergies: f.allergies, conditions: f.conditions, emergencyContact: f.emergencyContact, abha: f.abha || undefined, registeredAt: today() };
     setClinic({ ...clinic, patients: [...clinic.patients, p] });
     onDone(p.id);
   };
@@ -492,6 +493,7 @@ function Intake({ clinic, setClinic, onDone }: { clinic: Clinic; setClinic: (c: 
           <div><label className="label">Age</label><input type="number" className="field font-mono" value={f.age} onChange={set("age")} /></div>
           <div><label className="label">Sex</label><select className="field" value={f.sex} onChange={set("sex")}><option>Female</option><option>Male</option><option>Other</option></select></div>
           <div><label className="label">Blood group</label><select className="field" value={f.bloodGroup} onChange={set("bloodGroup")}><option value="">Unknown</option>{["A+","A-","B+","B-","AB+","AB-","O+","O-"].map((g) => <option key={g}>{g}</option>)}</select></div>
+          <div><label className="label">ABHA ID <span className="text-muted-foreground">(optional)</span></label><input className="field font-mono" inputMode="numeric" autoComplete="off" placeholder="XX-XXXX-XXXX-XXXX" maxLength={17} value={f.abha} onChange={(e) => setF({ ...f, abha: formatAbha(e.target.value) })} aria-describedby="abha-help" /><p id="abha-help" className="mt-1 text-xs text-muted-foreground">14 digits · formatted automatically</p></div>
           <div><label className="label">Height (cm)</label><input type="number" className="field font-mono" value={f.heightCm} onChange={set("heightCm")} /></div>
           <div><label className="label">Weight (kg)</label><input type="number" className="field font-mono" value={f.weightKg} onChange={set("weightKg")} /></div>
           <div><label className="label">BMI (auto)</label><div className="field font-mono text-muted-foreground">{b > 0 && Number.isFinite(b) ? `${b.toFixed(1)} · ${bmiClass(b)}` : "—"}</div></div>
