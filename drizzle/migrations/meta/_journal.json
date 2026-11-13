@@ -22,6 +22,13 @@
       "when": 1794555654047,
       "tag": "0002_secure_role_checks_and_live_queue",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794555762084,
+      "tag": "0003_harden_clinic_staff_onboarding_and_records",
+      "breakpoints": true
     }
   ]
 }

@@ -138,6 +138,7 @@ export type Database = {
       }
       clinic_visits: {
         Row: {
+          allergy_override: boolean
           complaint: string | null
           created_at: string
           date: string
@@ -156,6 +157,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allergy_override?: boolean
           complaint?: string | null
           created_at?: string
           date: string
@@ -174,6 +176,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allergy_override?: boolean
           complaint?: string | null
           created_at?: string
           date?: string
