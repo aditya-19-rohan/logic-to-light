@@ -98,6 +98,44 @@ export type Database = {
         }
         Relationships: []
       }
+      clinic_queue: {
+        Row: {
+          arrived_at: string
+          created_at: string
+          id: string
+          patient_id: number
+          queue_date: string
+          status: string
+          token: number
+        }
+        Insert: {
+          arrived_at?: string
+          created_at?: string
+          id?: string
+          patient_id: number
+          queue_date?: string
+          status?: string
+          token: number
+        }
+        Update: {
+          arrived_at?: string
+          created_at?: string
+          id?: string
+          patient_id?: number
+          queue_date?: string
+          status?: string
+          token?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_queue_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinic_visits: {
         Row: {
           complaint: string | null
