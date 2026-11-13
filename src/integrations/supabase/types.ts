@@ -72,7 +72,7 @@ export type Database = {
           created_at?: string
           emergency_contact?: string
           height_cm?: number
-          id: number
+          id?: number
           name: string
           registered_at?: string
           sex?: string
@@ -265,6 +265,45 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "clinic_queue"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      register_patient: {
+        Args: {
+          p_abha: string
+          p_age: number
+          p_allergies: string
+          p_blood_group: string
+          p_conditions: string
+          p_contact: string
+          p_emergency_contact: string
+          p_height_cm: number
+          p_name: string
+          p_registered_at: string
+          p_sex: string
+          p_weight_kg: number
+        }
+        Returns: {
+          abha: string | null
+          age: number
+          allergies: string
+          blood_group: string
+          conditions: string
+          contact: string
+          created_at: string
+          emergency_contact: string
+          height_cm: number
+          id: number
+          name: string
+          registered_at: string
+          sex: string
+          updated_at: string
+          weight_kg: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clinic_patients"
           isOneToOne: true
           isSetofReturn: false
         }

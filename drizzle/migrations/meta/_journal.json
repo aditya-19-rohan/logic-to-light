@@ -29,6 +29,13 @@
       "when": 1794555762084,
       "tag": "0003_harden_clinic_staff_onboarding_and_records",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794556024157,
+      "tag": "0004_add_safe_patient_registration",
+      "breakpoints": true
     }
   ]
 }
