@@ -72,7 +72,7 @@ export type Database = {
           created_at?: string
           emergency_contact?: string
           height_cm?: number
-          id: number
+          id?: number
           name: string
           registered_at?: string
           sex?: string
@@ -98,8 +98,47 @@ export type Database = {
         }
         Relationships: []
       }
+      clinic_queue: {
+        Row: {
+          arrived_at: string
+          created_at: string
+          id: string
+          patient_id: number
+          queue_date: string
+          status: string
+          token: number
+        }
+        Insert: {
+          arrived_at?: string
+          created_at?: string
+          id?: string
+          patient_id: number
+          queue_date?: string
+          status?: string
+          token: number
+        }
+        Update: {
+          arrived_at?: string
+          created_at?: string
+          id?: string
+          patient_id?: number
+          queue_date?: string
+          status?: string
+          token?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_queue_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinic_visits: {
         Row: {
+          allergy_override: boolean
           complaint: string | null
           created_at: string
           date: string
@@ -118,6 +157,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allergy_override?: boolean
           complaint?: string | null
           created_at?: string
           date: string
@@ -136,6 +176,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allergy_override?: boolean
           complaint?: string | null
           created_at?: string
           date?: string
@@ -210,12 +251,62 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["staff_role"]
-          _user_id: string
+      check_in_patient: {
+        Args: { p_patient_id: number }
+        Returns: {
+          arrived_at: string
+          created_at: string
+          id: string
+          patient_id: number
+          queue_date: string
+          status: string
+          token: number
         }
-        Returns: boolean
+        SetofOptions: {
+          from: "*"
+          to: "clinic_queue"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      register_patient: {
+        Args: {
+          p_abha: string
+          p_age: number
+          p_allergies: string
+          p_blood_group: string
+          p_conditions: string
+          p_contact: string
+          p_emergency_contact: string
+          p_height_cm: number
+          p_name: string
+          p_registered_at: string
+          p_sex: string
+          p_weight_kg: number
+        }
+        Returns: {
+          abha: string | null
+          age: number
+          allergies: string
+          blood_group: string
+          conditions: string
+          contact: string
+          created_at: string
+          emergency_contact: string
+          height_cm: number
+          id: number
+          name: string
+          registered_at: string
+          sex: string
+          updated_at: string
+          weight_kg: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clinic_patients"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       replace_clinic: {
         Args: { p_patients: Json; p_visits: Json }

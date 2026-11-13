@@ -8,6 +8,34 @@
       "when": 1794465761878,
       "tag": "0000_create_clinic_staff_access_and_audit",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794555575832,
+      "tag": "0001_add_shared_clinic_queue",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794555654047,
+      "tag": "0002_secure_role_checks_and_live_queue",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794555762084,
+      "tag": "0003_harden_clinic_staff_onboarding_and_records",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794556024157,
+      "tag": "0004_add_safe_patient_registration",
+      "breakpoints": true
     }
   ]
 }
