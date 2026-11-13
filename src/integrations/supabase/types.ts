@@ -248,12 +248,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["staff_role"]
-          _user_id: string
+      check_in_patient: {
+        Args: { p_patient_id: number }
+        Returns: {
+          arrived_at: string
+          created_at: string
+          id: string
+          patient_id: number
+          queue_date: string
+          status: string
+          token: number
         }
-        Returns: boolean
+        SetofOptions: {
+          from: "*"
+          to: "clinic_queue"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       replace_clinic: {
         Args: { p_patients: Json; p_visits: Json }

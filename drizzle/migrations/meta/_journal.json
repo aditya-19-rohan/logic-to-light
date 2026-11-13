@@ -15,6 +15,13 @@
       "when": 1794555575832,
       "tag": "0001_add_shared_clinic_queue",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794555654047,
+      "tag": "0002_secure_role_checks_and_live_queue",
+      "breakpoints": true
     }
   ]
 }
